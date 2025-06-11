@@ -28,6 +28,14 @@ class Fun(commands.Cog, name="fun"):
         embed = discord.Embed(title=random.choice(["Heads", "Tails"]), color=0xD75BF4)
         await context.send(embed=embed)
 
+    @commands.hybrid_command(name="d20", description="Roll a d20!")
+    async def d20(self, context: Context) -> None:
+        """
+        Rolls a d20
+        """
+        embed = discord.Embed(title=random.randint(1, 20), color=random.randint(0, 255))
+        await context.send(embed=embed)
+
 
 async def setup(bot) -> None:
     await bot.add_cog(Fun(bot))
