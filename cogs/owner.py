@@ -5,6 +5,7 @@ Description:
 
 Version: 6.3.0
 """
+import json
 
 import discord
 from discord import app_commands
@@ -15,6 +16,51 @@ from discord.ext.commands import Context
 class Owner(commands.Cog, name="owner"):
     def __init__(self, bot) -> None:
         self.bot = bot
+
+    @commands.command(
+        name="backup",
+        description="Stores a template of the entire to a JSON file on the host's drive.",
+    )
+    @commands.is_owner()
+    async def backup(self, context: Context) -> None:
+        guild = {}
+        guild['channels'] = []
+        guild['categories'] = []
+        # print(context.guild.channels)
+        for category in context.guild.categories:
+            guild['categories'].append(category.name)
+        for channel in context.guild.channels:
+            if (type(channel) != discord.CategoryChannel):
+                guild['channels'].append(
+                    {
+                        "name": channel.name,
+                        "category": channel.category.name,
+                        "is_text": (type(channel) == discord.TextChannel),
+                        "is_audio": (type(channel) == discord.VoiceChannel),
+                    }
+                )
+        
+        print(guild)
+        with open("guild.json", 'w') as file:
+            file.write(json.dumps(guild))
+
+    @commands.command(
+        name="restore",
+        description="Erases the ENTIRE Guild of current Context, and replaces it with the backup's JSON",
+    )
+    @commands.is_owner()
+    async def restore(self, context: Context) -> None:
+        for channel in context.guild.channels:
+            await channel.delete()
+        with open('guild.json', 'r') as file:
+            guild = json.loads(file)
+        for category in guild.categories:
+            context.guild.create_category(category.name)
+
+        for channel in guild.channels:
+            if channel.is_text == True:
+                context.guild.create_text_channel(channel.name, category=get(context.guild.categories, name=channel.category.name))
+
 
     @commands.command(
         name="sync",
